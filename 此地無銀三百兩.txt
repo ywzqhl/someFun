@@ -1,0 +1,419 @@
+#前情提要：
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.
+#.哪有什麼提要
+#.有鑒於網路說明範例 寫太差了 官網也不妨多讓
+#.還有一堆不能用的 images 是哪招
+#.我Lursun  研究一個禮拜寫了這篇 :)
+#.facebook: Lin-Yi Tang
+#.Gmail:    lursun914013@gmail.com
+#.拜我為師吧 哈哈哈哈哈～～～～
+
+
+
+#必備：
+docker #不用我說了吧
+docker-machine create --driver=virtualbox fabric-lab # 替你的虛擬機起個名//如果無法運作noops,pbft
+
+
+docker pull hyperledger/fabric-peer       #實驗日期 2017-1-6 ID:21cb00fb27f4
+docker pull hyperledger/fabric-membersrvc #實驗日期 2017-1-6 ID:b3654d32e4f9
+docker tag hyperledger/fabric-peer hyperledger/fabric-baseimage:latest 
+docker pull hyperledger/fabric-starter-kit #有證書
+
+#官方的 hyperledger/fabric-baseimage:latest 不能用,用 fabric-peer替代 
+#也別嘗試 yeasy 系列我都試過了 全都不行(可能有漏掉)
+
+
+
+#docker run 參數 指令 #docker 運行container
+#其參數：
+#-p host port:container_port //映射port
+#-e container內環境參數
+#-d 背景執行
+#-v /var/run/docker.sock /var/run/docker.sock #hyperledger-fabric 非--peer-chaincodedev 需共用 docker.sock
+#-idt 啟動背景指令
+#--link 與另一個container做連結
+#--name 替欲啟動container取個唯一名
+
+#對container下指令
+#docker exec -it container名|ID 指令 
+
+#啟動節點
+#peer node start 
+#其參數
+#--peer-chaincodedev //鏈碼開發模式 只需一個節點即能運作
+
+#環境參數 全屬可選
+#CORE_PEER_ID=vpX //節點ID
+#MEMBERSRVC_ADDRESS=IP:7054 //membersrvc服務之 IP:port 預設7054
+#CORE_SECURITY_ENABLED=true  //啟用安全核心 須搭配 membersrvc
+#CORE_SECURITY_PRIVACY=true //啟用隐私和保密 須搭配 membersrvc,CORE_SECURITY_ENABLED=true
+#KEY_VALUE_STORE=/tmp/hl_sdk_node_key_value_store //證書保存位置
+#CORE_PEER_ADDRESSAUTODETECT=true //自動找尋節點
+#CORE_PEER_NETWORKID=dev // 看起來辨識用 應該可改???
+#CORE_VM_ENDPOINT=unix:///var/run/docker.sock //peer需要從容器管理其他容器
+#CORE_LOGGING_LEVEL=debug //有較詳細log
+#CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft //採用pbft共識機制 目前未找到可採用其他共識資料
+#CORE_PBFT_GENERAL_N=4 //多節點之節點數量 至少為4 其算法
+#CORE_PEER_DISCOVERY_ROOTNODE=${ROOT_NODE}:${ROOT_PORT} //pbft起始連線節點 無則等待
+#如允許 1/3 以下(不包含)個節點失聯 則應為 可失聯最大數*3+1(因不含所以+1 故至少為4)
+#若超過 1/3 (含) 則無法運作
+#DEPLOY_MODE=dev // ???
+
+
+#安全模式需
+#登錄 如無-p 依然會要求密碼 其預設在 fabric/peer/core.yaml
+peer network login 帳號 -p 密碼 
+
+
+./[chaincode檔] #與運作中的peer建立連線通道
+#所需環境參數
+CORE_CHAINCODE_ID_NAME=chaincode_name #鏈碼開發模式 必填
+CORE_PEER_ADDRESS=0.0.0.0:7050 #欲連結peer 其IP:Port 必填
+
+
+#必須事先執行chaincode 檔 (noops,pbft 會先幫你執行)
+
+peer chaincode deploy -p 'chaincode目錄' -n 'chaincode_name' -c 'chaincode參數'
+-u #登錄者 需事先登錄 安全模式必要
+-l #golang|java chaincode 語言(預設golang)
+-p #為路徑,開發模式下 非必要;非開發模式 必要  (＊＊注意＊＊)為 從$GOPATH/src 為基準 故常看到 github.com/...
+-n #chaincode_name 開發模式 必要;非開發模式 忽視
+-c #必填這不多說吧...
+
+#其結果返回將返回 Deploy chaincode: chaincode_name
+#若為noops,pbft模式 將返回一串16進位 而非所填-n
+
+
+
+#//////////////////////////--peer-chaincodedev///////////////////////////////
+#鏈碼開發模式
+
+#單一節點運作 難度＊＊＊＊＊
+
+#使用docker 運作起節點
+docker run -d -p 7050:7050 -p 7051:7051  --name vp \
+hyperledger/fabric-peer:latest peer node start --peer-chaincodedev
+#映射port 方便本機確認正常 除此之外沒別的
+
+#移動到chaincode 目錄
+cd examples/chaincode/go/chaincode_example02/ #該目錄有兩個檔案
+
+#編譯
+go build 
+#目前目錄產生一個執行檔 chaincode_example02 
+
+#執行chaincode
+CORE_CHAINCODE_ID_NAME=mycc CORE_PEER_ADDRESS=0.0.0.0:7051 ./chaincode_example02 &
+#為chaincode命名(mycc) 和 設定節點IP:Port 放到背景執行或是再開一個EXEC bash 操作
+#此時會和節點建立連線通道
+
+#部署
+peer chaincode deploy -n mycc -c '{"Function":"init", "Args": ["a","100", "b", "200"]}'
+#查詢a 100
+peer chaincode query -n mycc -c '{"Function": "query", "Args": ["a"]}'
+#交易 a-35,b+35
+peer chaincode invoke -n mycc -c '{"Function": "invoke", "Args": ["a", "b", “35”]}’
+#查詢a 65
+peer chaincode query -n mycc -c '{"Function": "query", "Args": ["a"]}'
+
+
+
+#//////////////////////////noops//////////////////////////////
+#節點開發模式
+
+#單一節點運作 難度＊＊＊＊＊＊＊＊＊＊＊
+
+
+#使用docker 運作起節點
+docker run -d -p 7050:7050 -p 7051:7051 --name=vp \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-e CORE_VM_ENDPOINT=unix:///var/run/docker.sock \
+hyperledger/fabric-peer:latest peer node start
+
+
+#和開發模式不同 其運作需要用到
+#-e CORE_VM_ENDPOINT=unix:///var/run/docker.sock #用來控制本機容器
+#-v /var/run/docker.sock /var/run/docker.sock #與本機分享檔案 用來控制本機容器
+#peer node start # 無--peer-chaincodedev參數 
+#(***注意***)是 tag hyperledger/fabric-peer 得到的非 pull xxxx
+
+#與開發模式 相同是 只需一個節點及能運作
+#而運作很接近 多節點做法
+
+#與 鏈碼開發模式 不同
+#不需要事先編譯(go build)和啟動 (./chaincode.go)
+
+#直接deploy
+peer chaincode deploy \
+-p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02 \
+-c '{"Function":"init", "Args": ["a","100", "b", "200"]}'
+#返回很長的 16 進位 chaincode name
+
+#這邊的 deploy 是 -p PATH  其目錄基準是 hyperledger/fabric-baseimage 的 $GOPATH/src
+
+#查詢a=100
+peer chaincode query -n {chaincode_name} -c '{"Function": "query", "Args": ["a"]}'
+#交易 a-35,b+35
+peer chaincode invoke -n {chaincode_name} -c '{"Function": "invoke", "Args": ["a", "b", “35”]}’
+#查詢a=65
+peer chaincode query -n {chaincode_name} -c '{"Function": "query", "Args": ["a"]}'
+
+#(***運作原理***)
+#在 deploy 時 會根據 -p "位置"
+#控制容器(記得參數 /var/run/docker.sock 嗎？) 
+#啟動 hyperledger/fabric-baseimage sh
+#此時查看 docker ps -a 會多一個 container運作
+#並執行 go install “位置” 及相關動作 hyperledger/fabric-baseimage $GOPATH/bin 多一個chaincode檔
+#執行chaincode 與原本 hyperledger/fabric-peer 建立連線通道 並隨機返回 chaincode name
+#到此部署完成 因為不同容器 chaincode 掛了也沒關係
+
+#/////////////////////pbft///////////////////////
+#pbft模式
+
+#多節點最少4節點 難度：[sorry * is overflow buffer XD]
+
+#ROOT 節點
+docker run --name=vp0 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e CORE_VM_ENDPOINT=unix:///var/run/docker.sock \
+    -e CORE_LOGGING_LEVEL=debug \
+    -e CORE_PEER_ID=vp0 \
+    -e CORE_PEER_NETWORKID=dev \
+    -e CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft \
+    -e CORE_PEER_ADDRESSAUTODETECT=true \
+    -e CORE_PBFT_GENERAL_N=4 \
+    -e CORE_PBFT_GENERAL_MODE=batch \
+    -e CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s \
+    hyperledger/fabric-peer:latest peer node start
+
+#相較於 noops 又多了奇怪東西
+#我就沒有下功夫研究參數
+#CORE_LOGGING_LEVEL=debug 更多log(可選)
+#CORE_PEER_ID=vp0 給root節點起個名字
+#CORE_PEER_NETWORKID=dev 網路id 八成可以改
+#CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft 就是pbft 不知道可以拖出去斬了
+#CORE_PEER_ADDRESSAUTODETECT=true 自動抓地址？？
+#CORE_PBFT_GENERAL_N=4 至少四節點 很明顯吧
+#CORE_PBFT_GENERAL_MODE=batch 批量？？
+#CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s 超時相關？
+
+#執行vp0 ~ 3
+docker run --name=vp1 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e CORE_VM_ENDPOINT=unix:///var/run/docker.sock \
+    -e CORE_LOGGING_LEVEL=debug \
+    -e CORE_PEER_ID=vp1 \
+    -e CORE_PEER_NETWORKID=dev \
+    -e CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft \
+    -e CORE_PEER_ADDRESSAUTODETECT=true \
+    -e CORE_PBFT_GENERAL_N=4 \
+    -e CORE_PBFT_GENERAL_MODE=batch \
+    -e CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s \
+    -e CORE_PEER_DISCOVERY_ROOTNODE=172.17.0.2:7051 \
+    hyperledger/fabric-peer:latest peer node start
+#--name  CORE_PEER_ID CORE_PEER_DISCOVERY_ROOTNODE 記得改
+#CORE_PEER_DISCOVERY_ROOTNODE 設定根節點IP:Port
+
+
+
+
+#部署
+peer chaincode deploy -n {chaincode_name} -c '{"Function":"init", "Args": ["a","100", "b", "200"]}'
+#查詢a=100
+peer chaincode query -n {chaincode_name} -c '{"Function": "query", "Args": ["a"]}'
+#交易 a-35,b+35
+peer chaincode invoke -n {chaincode_name} -c '{"Function": "invoke", "Args": ["a", "b", “35”]}’
+#查詢a=65
+peer chaincode query -n {chaincode_name} -c '{"Function": "query", "Args": ["a"]}'
+
+#我很懶都複製貼上XD
+
+
+#(***運作原理***)
+#參照noops
+#此時 docker ps -a 又多出四個 :)
+
+
+#//////////////////////////membersrvc///////////////////////////////
+#會員安全balabala 就安全模式嘛
+
+#使用noops舉例 我可不想再寫一個 --peer-chaincodedev無效
+#難度＊＊＊＊＊＊＊
+
+#使用docker 運作起節點
+
+docker run -d -p 7054:7054  --name membersrvc \
+hyperledger/fabric-membersrvc:latest membersrvc
+#就是這麼精簡 只要映射7054 port
+
+#才怪還有勒
+docker run -d -p 7050:7050 -p 7051:7051  --name=vp \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-e CORE_VM_ENDPOINT=unix:///var/run/docker.sock \
+-e CORE_LOGGING_LEVEL=DEBUG \
+-e CORE_PEER_ID=vp0 \
+-e CORE_SECURITY_ENABLED=true \
+-e CORE_PEER_PKI_ECA_PADDR=172.17.0.2:7054 \
+-e CORE_PEER_PKI_TCA_PADDR=172.17.0.2:7054 \
+-e CORE_PEER_PKI_TLSCA_PADDR=172.17.0.2:7054 \
+-e CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=noops \
+hyperledger/fabric-peer:latest  sh -c "sleep 20; peer node start"
+
+docker run -idt --name=start \
+-e MEMBERSRVC_ADDRESS=172.17.0.2:7054 \
+-e KEY_VALUE_STORE=/tmp/hl_sdk_node_key_value_store \
+-e PEER_ADDRESS=172.17.0.3:7051 \
+-e CORE_PEER_ADDRESS=172.17.0.3:7051 \
+-e CORE_CHAINCODE_ID_NAME=mycc \
+-e DEPLOY_MODE=dev \
+hyperledger/fabric-starter-kit:latest sh  "sleep 20; /opt/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02/chaincode_example02"
+
+
+#登入
+peer network login jim -p 6avZQLwcUe9b
+
+
+#部署
+peer chaincode deploy \
+-u jim \
+-n mycc \
+-c '{"Function":"init", "Args": ["a","100", "b", "200"]}'
+#查詢a 100
+peer chaincode query -u jim -n mycc -c '{"Function": "query", "Args": ["a"]}'
+#交易 a-35,b+35
+peer chaincode invoke -u jim -n mycc -c '{"Function": "invoke", "Args": ["a", "b", “35”]}’
+#查詢a 65
+peer chaincode query -u jim -n mycc -c '{"Function": "query", "Args": ["a"]}'
+
+#只差一個 -u 和登入而已 前面弄懂後 沒什麼難的
+
+################################################
+奇怪membersrvc 跑不起來
+可是 同樣的 docker-compose up可以
+################################################
+membersrvc:
+  # try 'docker ps' to see the container status after starting this compose
+  container_name: membersrvc
+  image: hyperledger/fabric-membersrvc
+  command: membersrvc
+
+peer:
+  container_name: peer
+  image: hyperledger/fabric-peer
+  environment:
+    - CORE_PEER_ADDRESSAUTODETECT=true
+    - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+    - CORE_LOGGING_LEVEL=DEBUG
+    - CORE_PEER_ID=vp0
+    - CORE_SECURITY_ENABLED=true
+    - CORE_PEER_PKI_ECA_PADDR=membersrvc:7054
+    - CORE_PEER_PKI_TCA_PADDR=membersrvc:7054
+    - CORE_PEER_PKI_TLSCA_PADDR=membersrvc:7054
+    - CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=noops
+  # this gives access to the docker host daemon to deploy chain code in network mode
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  # have the peer wait 10 sec for membersrvc to start
+  #  the following is to run the peer in Developer mode - also set sample DEPLOY_MODE=dev
+  command: sh -c "sleep 10; peer node start --peer-chaincodedev"
+  #command: sh -c "sleep 10; peer node start"
+  links:
+    - membersrvc
+
+starter:
+  container_name: starter
+  image: hyperledger/fabric-starter-kit
+  volumes:
+    # tweak this to map a local developmnt directory tree into the container
+    - ~/mytest:/user/mytest
+  environment:
+    - MEMBERSRVC_ADDRESS=membersrvc:7054
+    - PEER_ADDRESS=peer:7051
+    - KEY_VALUE_STORE=/tmp/hl_sdk_node_key_value_store
+    # set to following to 'dev' if peer running in Developer mode
+    - DEPLOY_MODE=dev
+    - CORE_CHAINCODE_ID_NAME=mycc
+    - CORE_PEER_ADDRESS=peer:7051
+  # the following command will start the chain code when this container starts and ready it for deployment by the app
+  command: sh -c "sleep 20; /opt/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02/chaincode_example02"
+  stdin_open: true
+  tty: true
+  links:
+    - membersrvc
+    - peer
+################################################
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#筆記到此結束
+#後面沒了
+#後面沒了
+#後面沒了
+#後面沒了
+#後面沒了
+#後面沒了
+#後面沒了
+#後面沒了
+#後面沒了
+
+
+
+################################################################################################
