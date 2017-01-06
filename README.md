@@ -1,55 +1,55 @@
 # 前情提要：
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
-#\
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #哪有什麼提要\
 #有鑒於網路說明範例 寫太差了 官網也不妨多讓\
 #還有一堆不能用的 images 是哪招\
@@ -76,40 +76,40 @@ docker pull hyperledger/fabric-starter-kit	#有會員證書
 
 
 
-#docker run 參數 指令 #docker 運行container\
-#其參數：\
-#-p host port:container_port //映射port\
-#-e container內環境參數\
-#-d 背景執行\
-#-v /var/run/docker.sock /var/run/docker.sock #hyperledger-fabric 非--peer-chaincodedev 需共用 docker.sock\
-#-idt 啟動背景指令\
-#--link 與另一個container做連結\
-#--name 替欲啟動container取個唯一名
+docker run 參數 指令 #docker 運行container\
+其參數：\
+-p host port:container_port //映射port\
+-e container內環境參數\
+-d 背景執行\
+-v /var/run/docker.sock /var/run/docker.sock #hyperledger-fabric 非--peer-chaincodedev 需共用 docker.sock\
+-idt 啟動背景指令\
+--link 與另一個container做連結\
+--name 替欲啟動container取個唯一名
 
-#對container下指令\
-#docker exec -it container名|ID 指令
+對container下指令\
+docker exec -it container名|ID 指令
 
 #### 啟動節點
-#peer node start\
-#其參數\
-#--peer-chaincodedev #鏈碼開發模式 只需一個節點即能運作
+peer node start\
+其參數\
+--peer-chaincodedev #鏈碼開發模式 只需一個節點即能運作
 
-#環境參數 全屬可選\
-#CORE_PEER_ID=vpX #節點ID\
-#MEMBERSRVC_ADDRESS=IP:7054 #membersrvc服務之 IP:port 預設7054\
-#CORE_SECURITY_ENABLED=true  #啟用安全核心 須搭配 membersrvc\
-#CORE_SECURITY_PRIVACY=true #啟用隐私和保密 須搭配\ membersrvc,CORE_SECURITY_ENABLED=true\
-#KEY_VALUE_STORE=/tmp/hl_sdk_node_key_value_store #證書保存位置\
-#CORE_PEER_ADDRESSAUTODETECT=true #自動找尋節點\
-#CORE_PEER_NETWORKID=dev # 看起來辨識用 應該可改???\
-#CORE_VM_ENDPOINT=unix:///var/run/docker.sock #peer需要從容器管理其他容器\
-#CORE_LOGGING_LEVEL=debug #較詳細log\
-#CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft #採用pbft共識機制 目前未找到可採用其他共識資料\
-#CORE_PBFT_GENERAL_N=4 #多節點之節點數量 至少為4 其算法\
-#如允許 1/3 以下(不包含)個節點失聯 則應為 可失聯最大數*3+1(因不含所以+1 故至少為4)\
-#若超過 1/3 (含) 則無法運作\
-#DEPLOY_MODE=dev # ???\
-#CORE_PEER_DISCOVERY_ROOTNODE=${ROOT_NODE}:${ROOT_PORT} #pbft起始連線節點 無則等待
+環境參數 全屬可選\
+CORE_PEER_ID=vpX #節點ID\
+MEMBERSRVC_ADDRESS=IP:7054 #membersrvc服務之 IP:port 預設7054\
+CORE_SECURITY_ENABLED=true  #啟用安全核心 須搭配 membersrvc\
+CORE_SECURITY_PRIVACY=true #啟用隐私和保密 須搭配\ membersrvc,CORE_SECURITY_ENABLED=true\
+KEY_VALUE_STORE=/tmp/hl_sdk_node_key_value_store #證書保存位置\
+CORE_PEER_ADDRESSAUTODETECT=true #自動找尋節點\
+CORE_PEER_NETWORKID=dev # 看起來辨識用 應該可改???\
+CORE_VM_ENDPOINT=unix:///var/run/docker.sock #peer需要從容器管理其他容器\
+CORE_LOGGING_LEVEL=debug #較詳細log\
+CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft #採用pbft共識機制 目前未找到可採用其他共識資料\
+CORE_PBFT_GENERAL_N=4 #多節點之節點數量 至少為4 其算法\
+如允許 1/3 以下(不包含)個節點失聯 則應為 可失聯最大數*3+1(因不含所以+1 故至少為4)\
+若超過 1/3 (含) 則無法運作\
+DEPLOY_MODE=dev # ???\
+CORE_PEER_DISCOVERY_ROOTNODE=${ROOT_NODE}:${ROOT_PORT} #pbft起始連線節點 無則等待
 
 #### 安全模式需登錄 如無-p 依然會要求密碼
 #### 其預設在 fabric/peer/core.yaml
@@ -120,12 +120,12 @@ peer network login 帳號 -p 密碼
 ```sh
 ./chaincode.go #與運作中的peer建立連線通道
 ```
-#所需環境參數\
-#CORE_CHAINCODE_ID_NAME=chaincode_name #鏈碼開發模式 必填\
-#CORE_PEER_ADDRESS=0.0.0.0:7050 #欲連結peer 其IP:Port 必填
+所需環境參數\
+CORE_CHAINCODE_ID_NAME=chaincode_name #鏈碼開發模式 必填\
+CORE_PEER_ADDRESS=0.0.0.0:7050 #欲連結peer 其IP:Port 必填
 
 
-#必須事先執行chaincode 檔 (noops,pbft 會先幫你執行)
+必須事先執行chaincode 檔 (noops,pbft 會先幫你執行)
 
 peer chaincode deploy -p 'chaincode目錄' -n 'chaincode_name' -c 'chaincode參數'
 -u #登錄者 需事先登錄 安全模式必要\
@@ -134,8 +134,8 @@ peer chaincode deploy -p 'chaincode目錄' -n 'chaincode_name' -c 'chaincode參�
 -n #chaincode_name 開發模式 必要;非開發模式 忽視\
 -c #必填這不多說吧...
 
-#其結果返回將返回 Deploy chaincode: chaincode_name\
-#若為noops,pbft模式 將返回一串16進位 而非所填-n
+其結果返回將返回 Deploy chaincode: chaincode_name\
+若為noops,pbft模式 將返回一串16進位 而非所填-n
 
 
 ##
@@ -185,15 +185,15 @@ docker run -d -p 7050:7050 -p 7051:7051 --name=vp \
 hyperledger/fabric-peer:latest peer node start
 ```
 
-#和鏈碼開發模式不同 其運作需要用到\
-#-e CORE_VM_ENDPOINT=unix:///var/run/docker.sock #用來控制本機容器\
-#-v /var/run/docker.sock /var/run/docker.sock #與本機分享檔案 用來控制本機容器\
-#peer node start # 無--peer-chaincodedev參數\
-#本例會用到hyperledger/fabric-baseimage:latest 在其內部執行 chaincode\
-#(***注意***)是 docker tag hyperledger/fabric-peer hyperledger/fabric-baseimage 得到的非 pull xxxx
+和鏈碼開發模式不同 其運作需要用到\
+-e CORE_VM_ENDPOINT=unix:///var/run/docker.sock #用來控制本機容器\
+-v /var/run/docker.sock /var/run/docker.sock #與本機分享檔案 用來控制本機容器\
+peer node start # 無--peer-chaincodedev參數\
+本例會用到hyperledger/fabric-baseimage:latest 在其內部執行 chaincode\
+#### (***注意***)是 docker tag hyperledger/fabric-peer hyperledger/fabric-baseimage 得到的非 pull xxxx
 
-#與開發模式 相同是 只需一個節點及能運作\
-#而運作很接近 多節點做法
+與開發模式 相同是 只需一個節點及能運作\
+而運作很接近 多節點做法
 
 #### 與 鏈碼開發模式 不同
 #### 不需要事先編譯(go build)和啟動 (./chaincode.go)
@@ -241,16 +241,16 @@ docker run --name=vp0 \
     -e CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s \
     hyperledger/fabric-peer:latest peer node start
 ```
-#相較於 noops 又多了奇怪東西\
-#我就沒有下功夫研究參數\
-#CORE_LOGGING_LEVEL=debug 更多log(可選)\
-#CORE_PEER_ID=vp0 給root節點起個名字\
-#CORE_PEER_NETWORKID=dev 網路id 八成可以改\
-#CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft 就是pbft模式 不知道的可以拖出去斬了\
-#CORE_PEER_ADDRESSAUTODETECT=true 自動抓地址？？\
-#CORE_PBFT_GENERAL_N=4 至少四節點 很明顯吧\
-#CORE_PBFT_GENERAL_MODE=batch 批量？？\
-#CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s 超時相關？
+相較於 noops 又多了奇怪東西\
+我就沒有下功夫研究參數\
+CORE_LOGGING_LEVEL=debug 更多log(可選)\
+CORE_PEER_ID=vp0 給root節點起個名字\
+CORE_PEER_NETWORKID=dev 網路id 八成可以改\
+CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft 就是pbft模式 不知道的可以拖出去斬了\
+CORE_PEER_ADDRESSAUTODETECT=true 自動抓地址？？\
+CORE_PBFT_GENERAL_N=4 至少四節點 很明顯吧\
+CORE_PBFT_GENERAL_MODE=batch 批量？？\
+CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s 超時相關？
 ```
 #執行vp1 ~ 3
 docker run --name=vp1 \
@@ -289,14 +289,14 @@ peer chaincode query -n {chaincode_name} -c '{"Function": "query", "Args": ["a"]
 ```
 
 #### (***運作原理***)
-#參照noops\
-#此時 docker ps -a 又多出四個 :)
+參照noops\
+此時 docker ps -a 又多出四個 :)
 
 ##
 # membersrvc
 ### 會員驗證模式  使用noops舉例 
-#我可不想再寫一個pbft,
-#--peer-chaincodedev無效
+我可不想再寫一個pbft,
+--peer-chaincodedev無效
 #### 難度 ☆  ☆  ☆  ☆  ☆  ☆  ☆ 
 ```
 #使用docker 運作起節點
@@ -348,7 +348,7 @@ peer chaincode query -u jim -n mycc -c '{"Function": "query", "Args": ["a"]}'
 
 #只差一個 -u 和登入而已 前面弄懂後 沒什麼難的
 ```
-###############################################\
+##############################################
 奇怪membersrvc 跑不起來\
 可是 同樣內容的 docker-compose up可以
 ###############################################
@@ -404,28 +404,3 @@ starter:
     - membersrvc
     - peer
 ```
-################################################\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#筆記到此結束\
-#後面沒了\
-#後面沒了\
-#後面沒了\
-#後面沒了\
-#後面沒了\
-#後面沒了\
-#後面沒了\
-#後面沒了\
-#後面沒了
-
-
-
-################################################################################################
